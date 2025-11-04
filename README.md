@@ -1,6 +1,4 @@
 # Delivery Analytics Platform
- 
- Project I made to learn **FastAPI**, **SQlAlchemy**, and how services talk to each other.
 
  ---
 
