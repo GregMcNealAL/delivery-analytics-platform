@@ -17,4 +17,4 @@ class Settings(BaseSettings):
         env_file = ".env"    # If you create a .env file, this will read from it
 
 
-setings = Settings()
+settings = Settings()
