@@ -1,23 +1,23 @@
 from fastapi import FastAPI
-import requests
 
-from analytics_service.schemas import AnalyticsSummary
-from analytics_service.calculations import average_delivery_time, average_cost, top_locations
+from analytics_service.core.logging import setup_logging
+from analytics_service.core.http_client import init_http_client, close_http_client
+from analytics_service.routers.analytics import router as analytics_router
+
 
 app = FastAPI(title="Analytics Service")
 
-ORDERS_API_URL = "http://127.0.0.1:8000/orders"
 
-@app.get("/analytics/summary", response_model=AnalyticsSummary)
-def get_summary():
-    response = requests.get(ORDERS_API_URL)
-    orders = response.json()
+@app.on_event("startup")
+async def startup_event():
+    setup_logging()
+    await init_http_client()
 
-    summary = AnalyticsSummary(
-        total_orders=len(orders),
-        average_delivery_time=average_delivery_time(orders),
-        average_cost=average_cost(orders),
-        top_locations=top_locations(orders)
-    )
 
-    return summary
+@app.on_event("shutdown")
+async def shutdown_event():
+    await close_http_client()
+
+
+# Registers routes
+app.include_router(analytics_router, prefix="/analytics")
