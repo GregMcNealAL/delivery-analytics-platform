@@ -1,5 +1,4 @@
 import httpx
-from fastapi import Depends
 from analytics_service.core.config import settings
 
 _async_client: httpx.AsyncClient | None = None
