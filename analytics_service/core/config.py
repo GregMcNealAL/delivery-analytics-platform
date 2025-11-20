@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     INITIAL_BACKOFF: float = 0.5
 
     class Config:
-        env_file = ".env"    # If you create a .env file, this will read from it
+        env_file = ".env"
 
 
 settings = Settings()
