@@ -13,7 +13,7 @@ def get_orders(db: Session = Depends(get_db)):
 
 @app.get("/orders/{order_id}", response_model=OrderRead)
 def get_order(order_id: int, db: Session = Depends(get_db)):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = db.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
@@ -25,3 +25,13 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(new_order)
     return new_order
+
+@app.delete("/orders/{order_id}")
+def delete_order(order_id: int, db: Session = Depends(get_db)):
+    order = db.get(Order, order_id)
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+
+    db.delete(order)
+    db.commit()
+    return {"message": "Item deleted successfully"}
