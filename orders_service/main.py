@@ -3,11 +3,10 @@ from sqlalchemy.orm import Session
 from orders_service.db import get_db
 from orders_service.models import Order
 from orders_service.schemas import OrderRead, OrderCreate
-from typing import List
 
 app = FastAPI(title="Order Service")
 
-@app.get("/orders", response_model=List[OrderRead])
+@app.get("/orders", response_model=list[OrderRead])
 def get_orders(db: Session = Depends(get_db)):
     return db.query(Order).all()
 
