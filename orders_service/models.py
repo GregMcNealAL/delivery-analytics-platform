@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
 from datetime import datetime
-from .db import Base # gets base class from orders db
+from .db import Base
 
 class Order(Base):
     __tablename__ = "orders"
