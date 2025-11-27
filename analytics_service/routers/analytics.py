@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException
+import asyncio
+
 from typing import Any, Dict, List
+
+import httpx
+from fastapi import APIRouter, Depends, HTTPException
 
 from analytics_service.core.config import settings
 from analytics_service.core.http_client import get_http_client
@@ -9,8 +13,6 @@ from analytics_service.calculations import (
     average_cost,
     top_locations,
 )
-import httpx
-import asyncio
 
 router = APIRouter()
 
