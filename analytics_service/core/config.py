@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 class Settings(BaseSettings):
     """
@@ -8,13 +8,13 @@ class Settings(BaseSettings):
     """
 
     ORDERS_API_URL: str = "http://127.0.0.1:8000/orders"
-
     REQUEST_TIMEOUT: float = 5.0
     MAX_RETRIES: int = 3
     INITIAL_BACKOFF: float = 0.5
 
-    class Config:
-        env_file = ".env"
-
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        extra="allow"
+    )
 
 settings = Settings()
