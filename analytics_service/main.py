@@ -19,5 +19,4 @@ async def shutdown_event():
     await close_http_client()
 
 
-# Registers routes
 app.include_router(analytics_router, prefix="/analytics")
