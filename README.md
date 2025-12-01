@@ -82,6 +82,13 @@ uvicorn orders_service.main:app --reload --port 8000
 ```bash
 uvicorn analytics_service.main:app --reload --port 8001
 ```
+
+### 6. Explore the API:
+Once the services are running, you can interact with the endpoints using the automatically generated Swagger UI:
+
+Orders Service: http://localhost:8000/docs
+Analytics Service: http://localhost:8001/docs
+
 ## Future Improvements:
 - Add more analytics endpoints such as revenue over time or delivery anomalies
 - Add a dashboard/frontend for visualizing metrics
