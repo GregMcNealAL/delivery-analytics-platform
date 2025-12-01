@@ -22,9 +22,9 @@ A two-service FastAPI system that models a small-scale delivery company backend.
   "average_delivery_time": 68.71,
   "average_cost": 250.63,
   "top_locations": [
-    "Niagara Falls",
-    "Childersburg",
-    "Canton"
+    "Miami",
+    "Springfield",
+    "Los Angeles"
   ]
 }
 ```
