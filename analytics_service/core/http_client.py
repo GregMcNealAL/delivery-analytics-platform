@@ -10,12 +10,14 @@ async def get_http_client() -> httpx.AsyncClient :
         raise RuntimeError("HTTP client not initialized. Startup event not running?")
     return _async_client
 
+
 async def init_http_client():
     """Initialize the shared async client (called on startup)."""
     global _async_client
     if _async_client is None:
         _async_client = httpx.AsyncClient(
-            timeout=settings.REQUEST_TIMEOUT
+            timeout=settings.REQUEST_TIMEOUT,
+            headers={"X-API-KEY": settings.ORDERS_API_KEY}
         )
 
 
