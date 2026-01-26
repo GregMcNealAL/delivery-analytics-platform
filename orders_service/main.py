@@ -3,22 +3,23 @@ from sqlalchemy.orm import Session
 from orders_service.db import get_db
 from orders_service.models import Order
 from orders_service.schemas import OrderRead, OrderCreate, OrderUpdate
+from orders_service.dependencies import verify_api_key
 
 app = FastAPI(title="Order Service")
 
 
-@app.get("/orders", response_model=list[OrderRead])
+@app.get("/orders", response_model=list[OrderRead], dependencies=[Depends(verify_api_key)])
 def get_orders(db: Session = Depends(get_db)):
     return db.query(Order).all()
 
-@app.get("/orders/{order_id}", response_model=OrderRead)
+@app.get("/orders/{order_id}", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
 def get_order(order_id: int, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
-@app.post("/orders", response_model=OrderRead)
+@app.post("/orders", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     new_order = Order(**order.dict())
     db.add(new_order)
@@ -30,7 +31,7 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Database commit failed")
     return new_order
 
-@app.patch("/orders/{order_id}", response_model=OrderRead)
+@app.patch("/orders/{order_id}", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
 def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:
@@ -49,7 +50,7 @@ def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends
     return order
 
 @app.delete("/orders/{order_id}")
-def delete_order(order_id: int, db: Session = Depends(get_db)):
+def delete_order(order_id: int, db: Session = Depends(get_db), dependencies=[Depends(verify_api_key)]):
     order = db.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
