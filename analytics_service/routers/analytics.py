@@ -3,6 +3,7 @@ import asyncio
 import httpx
 from fastapi import APIRouter, Depends, HTTPException
 
+from analytics_service.rate_limiter import rate_limit_dependency
 from analytics_service.core.config import settings
 from analytics_service.core.http_client import get_http_client
 from analytics_service.schemas import AnalyticsSummary
@@ -12,7 +13,11 @@ from analytics_service.calculations import (
     top_locations,
 )
 
-router = APIRouter()
+router = APIRouter(
+    prefix="/analytics",
+    tags=["analytics"],
+    dependencies=[Depends(rate_limit_dependency)]
+)
 
 
 async def fetch_orders(client: httpx.AsyncClient) -> list[dict]:
