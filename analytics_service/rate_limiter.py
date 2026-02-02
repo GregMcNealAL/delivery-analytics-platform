@@ -1,6 +1,9 @@
 import time
+import logging
 
 from fastapi import Depends, HTTPException, Request, status
+
+logger = logging.getLogger("analytics.rate_limiter")
 
 REQUEST_LIMIT = 60
 WINDOW_SIZE_SECONDS = 60
@@ -50,6 +53,12 @@ def rate_limit_dependency(api_key: str = Depends(get_api_key)) -> None:
     entry["count"] = count
 
     if count > REQUEST_LIMIT:
+        logger.warning(
+            "Rate limit exceeded for API key=%s (limit=%d per %ds)",
+            api_key,
+            REQUEST_LIMIT,
+            WINDOW_SIZE_SECONDS,
+        )
         raise HTTPException(
             status_code=status.HTTP_429_TOO_MANY_REQUESTS,
             detail="Rate limit exceeded. Try again later.",
