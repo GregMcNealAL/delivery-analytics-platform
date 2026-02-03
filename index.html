@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Delivery Analytics Summary</title>
+  <style>
+    :root {
+      --bg: #f7f7f9;
+      --card: #ffffff;
+      --text: #1a1a1a;
+      --muted: #6b7280;
+      --accent: #2563eb;
+      --error: #b91c1c;
+    }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      justify-content: center;
+      padding: 40px 16px;
+    }
+    .card {
+      width: 100%;
+      max-width: 640px;
+      background: var(--card);
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+      padding: 24px;
+    }
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 24px;
+    }
+    .muted {
+      color: var(--muted);
+      margin-bottom: 20px;
+    }
+    .row {
+      margin: 12px 0;
+      font-size: 16px;
+    }
+    .label {
+      font-weight: 600;
+    }
+    .loading {
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .error {
+      color: var(--error);
+      background: #fee2e2;
+      padding: 10px 12px;
+      border-radius: 8px;
+      margin-top: 12px;
+    }
+    ul {
+      padding-left: 20px;
+      margin: 8px 0 0 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Delivery Analytics</h1>
+    <div class="muted">Summary from analytics service</div>
+
+    <div id="status" class="loading">Loading...</div>
+
+    <div id="content" style="display:none;">
+      <div class="row"><span class="label">Total Orders:</span> <span id="totalOrders"></span></div>
+      <div class="row"><span class="label">Average Delivery Time:</span> <span id="avgDelivery"></span></div>
+      <div class="row"><span class="label">Average Cost:</span> <span id="avgCost"></span></div>
+      <div class="row"><span class="label">Top Locations:</span></div>
+      <ul id="topLocations"></ul>
+    </div>
+
+    <div id="error" class="error" style="display:none;"></div>
+  </div>
+
+  <script>
+    const endpoint = "http://localhost:8001/analytics/summary";
+
+    const statusEl = document.getElementById("status");
+    const contentEl = document.getElementById("content");
+    const errorEl = document.getElementById("error");
+
+    const totalOrdersEl = document.getElementById("totalOrders");
+    const avgDeliveryEl = document.getElementById("avgDelivery");
+    const avgCostEl = document.getElementById("avgCost");
+    const topLocationsEl = document.getElementById("topLocations");
+
+    async function loadAnalytics() {
+      try {
+        statusEl.textContent = "Loading...";
+        errorEl.style.display = "none";
+        contentEl.style.display = "none";
+
+        const res = await fetch(endpoint, {
+          headers: {
+            "X-API-Key": "dev-key"
+          }
+        });
+        if (!res.ok) {
+          throw new Error(`Request failed with status ${res.status}`);
+        }
+
+        const data = await res.json();
+
+        totalOrdersEl.textContent = data.total_orders ?? "N/A";
+        avgDeliveryEl.textContent = data.average_delivery_time ?? "N/A";
+        avgCostEl.textContent = data.average_cost ?? "N/A";
+
+        topLocationsEl.innerHTML = "";
+        (data.top_locations || []).forEach(loc => {
+          const li = document.createElement("li");
+          li.textContent = typeof loc === "string" ? loc : `${loc.name} (${loc.count})`;
+          topLocationsEl.appendChild(li);
+        });
+
+        statusEl.textContent = "";
+        contentEl.style.display = "block";
+      } catch (err) {
+        statusEl.textContent = "";
+        errorEl.textContent = `Error loading analytics: ${err.message}`;
+        errorEl.style.display = "block";
+      }
+    }
+
+    loadAnalytics();
+  </script>
+</body>
+</html>
