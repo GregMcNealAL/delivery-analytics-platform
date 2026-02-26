@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Delivery Analytics Summary</title>
+  <title>Delivery Analytics Platform</title>
   <style>
     :root {
       --bg: #f7f7f9;
@@ -81,18 +81,19 @@
   </div>
 
   <script>
-    const endpoint = "http://localhost:8001/analytics/summary";
-
-    const statusEl = document.getElementById("status");
-    const contentEl = document.getElementById("content");
-    const errorEl = document.getElementById("error");
-
-    const totalOrdersEl = document.getElementById("totalOrders");
-    const avgDeliveryEl = document.getElementById("avgDelivery");
-    const avgCostEl = document.getElementById("avgCost");
-    const topLocationsEl = document.getElementById("topLocations");
+    // Pointing to the Go Gateway on port 8080
+    const endpoint = "http://localhost:8080/analytics/summary";
 
     async function loadAnalytics() {
+      const statusEl = document.getElementById("status");
+      const contentEl = document.getElementById("content");
+      const errorEl = document.getElementById("error");
+
+      const totalOrdersEl = document.getElementById("totalOrders");
+      const avgDeliveryEl = document.getElementById("avgDelivery");
+      const avgCostEl = document.getElementById("avgCost");
+      const topLocationsEl = document.getElementById("topLocations");
+
       try {
         statusEl.textContent = "Loading...";
         errorEl.style.display = "none";
@@ -100,11 +101,12 @@
 
         const res = await fetch(endpoint, {
           headers: {
-            "X-API-Key": "dev-key"
+            "X-API-Key": "password123maybe"
           }
         });
+
         if (!res.ok) {
-          throw new Error(`Request failed with status ${res.status}`);
+          throw new Error(`Gateway returned status ${res.status}`);
         }
 
         const data = await res.json();
