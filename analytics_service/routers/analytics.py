@@ -1,16 +1,18 @@
 import asyncio
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from analytics_service.rate_limiter import rate_limit_dependency
 from analytics_service.core.config import settings
 from analytics_service.core.http_client import get_http_client
-from analytics_service.schemas import AnalyticsSummary
+from analytics_service.schemas import AnalyticsSummary, StatusBreakdown, LocationBreakdown
 from analytics_service.calculations import (
     average_delivery_time,
     average_cost,
     top_locations,
+    status_breakdown,
+    top_locations_with_counts,
 )
 
 router = APIRouter(
@@ -69,3 +71,18 @@ async def get_summary(client: httpx.AsyncClient = Depends(get_http_client)):
         average_cost=round(avg_cost_val, 2),
         top_locations=top_locs,
     )
+
+
+@router.get("/status-breakdown", response_model=StatusBreakdown)
+async def get_status_breakdown(client: httpx.AsyncClient = Depends(get_http_client)):
+    orders = await fetch_orders(client)
+    return StatusBreakdown(statuses=status_breakdown(orders))
+
+
+@router.get("/location-breakdown", response_model=LocationBreakdown)
+async def get_location_breakdown(
+    limit: int = Query(default=3, ge=1, le=50),
+    client: httpx.AsyncClient = Depends(get_http_client),
+):
+    orders = await fetch_orders(client)
+    return LocationBreakdown(top_locations=top_locations_with_counts(orders, top_n=limit))
