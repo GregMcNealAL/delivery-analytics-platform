@@ -10,20 +10,11 @@ import (
 	"time"
 )
 
-func main() {
-	ordersURL, _ := url.Parse("http://localhost:8000")
-	analyticsURL, _ := url.Parse("http://localhost:8001")
-
+func newGatewayHandler(validApiKey string, ordersURL *url.URL, analyticsURL *url.URL) http.Handler {
 	ordersProxy := httputil.NewSingleHostReverseProxy(ordersURL)
 	analyticsProxy := httputil.NewSingleHostReverseProxy(analyticsURL)
-
-	validApiKey := os.Getenv("ORDERS_API_KEY")
-
-	if validApiKey == "" {
-		log.Fatal("CRITICAL ERROR: ORDERS_API_KEY is not set in the environment. Service cannot start.")
-	}
-
-	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
 
 		w.Header().Set("Access-Control-Allow-Origin", "*")
@@ -53,9 +44,28 @@ func main() {
 
 		log.Printf("SUCCESS | Method: %s | Path: %s | Latency: %v", r.Method, r.URL.Path, time.Since(start))
 	})
+	return mux
+}
+
+func main() {
+	ordersURL, err := url.Parse("http://localhost:8000")
+	if err != nil {
+		log.Fatal(err)
+	}
+	analyticsURL, err := url.Parse("http://localhost:8001")
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	validApiKey := os.Getenv("ORDERS_API_KEY")
+	if validApiKey == "" {
+		log.Fatal("CRITICAL ERROR: ORDERS_API_KEY is not set in the environment. Service cannot start.")
+	}
+
+	handler := newGatewayHandler(validApiKey, ordersURL, analyticsURL)
 
 	log.Printf("Gateway server listening on http://localhost:8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+	if err := http.ListenAndServe(":8080", handler); err != nil {
 		log.Fatal(err)
 	}
 }
