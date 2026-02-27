@@ -49,8 +49,8 @@ def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends
         raise HTTPException(status_code=500, detail="Database commit failed")
     return order
 
-@app.delete("/orders/{order_id}")
-def delete_order(order_id: int, db: Session = Depends(get_db), dependencies=[Depends(verify_api_key)]):
+@app.delete("/orders/{order_id}", dependencies=[Depends(verify_api_key)])
+def delete_order(order_id: int, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
