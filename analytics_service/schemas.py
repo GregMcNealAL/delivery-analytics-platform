@@ -5,3 +5,16 @@ class AnalyticsSummary(BaseModel):
     average_delivery_time: float
     average_cost: float
     top_locations: list[str]
+
+
+class StatusBreakdown(BaseModel):
+    statuses: dict[str, int]
+
+
+class LocationCount(BaseModel):
+    location: str
+    count: int
+
+
+class LocationBreakdown(BaseModel):
+    top_locations: list[LocationCount]

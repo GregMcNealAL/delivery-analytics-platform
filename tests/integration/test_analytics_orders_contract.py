@@ -146,3 +146,95 @@ def test_summary_real_cross_service_upstream_404(monkeypatch):
 
     assert response.status_code == 502
     assert response.json()["detail"] == "Orders service returned status: 404"
+
+
+def test_status_breakdown_real_cross_service_success(monkeypatch):
+    engine, testing_session_local = _setup_orders_db()
+    _override_orders_db(testing_session_local)
+
+    session = testing_session_local()
+    session.add_all(
+        [
+            Order(item_name="A", location="Austin", cost=10.0, delivery_time=30, status="delivered"),
+            Order(item_name="B", location="Dallas", cost=20.0, delivery_time=50, status="pending"),
+            Order(item_name="C", location="Austin", cost=15.0, delivery_time=40, status="delivered"),
+            Order(item_name="D", location="Miami", cost=22.0, delivery_time=60, status="cancelled"),
+        ]
+    )
+    session.commit()
+    session.close()
+
+    monkeypatch.setattr(orders_settings, "ORDERS_API_KEY", "shared-key")
+    monkeypatch.setattr(analytics_settings, "ORDERS_API_KEY", "shared-key")
+    monkeypatch.setattr(analytics_settings, "ORDERS_API_URL", "http://orders.local/orders")
+    rate_limiter._rate_limit_store.clear()
+
+    orders_client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=orders_main.app),
+        headers={"X-API-KEY": "shared-key"},
+    )
+    analytics_client = _build_analytics_client(orders_client)
+
+    with analytics_client:
+        response = analytics_client.get("/analytics/status-breakdown", headers={"X-API-Key": "shared-key"})
+
+    asyncio.run(orders_client.aclose())
+    orders_main.app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "statuses": {
+            "delivered": 2,
+            "pending": 1,
+            "cancelled": 1,
+        }
+    }
+
+
+def test_location_breakdown_real_cross_service_success(monkeypatch):
+    engine, testing_session_local = _setup_orders_db()
+    _override_orders_db(testing_session_local)
+
+    session = testing_session_local()
+    session.add_all(
+        [
+            Order(item_name="A", location="Austin", cost=10.0, delivery_time=30, status="delivered"),
+            Order(item_name="B", location="Dallas", cost=20.0, delivery_time=50, status="pending"),
+            Order(item_name="C", location="Austin", cost=15.0, delivery_time=40, status="delivered"),
+            Order(item_name="D", location="Miami", cost=22.0, delivery_time=60, status="cancelled"),
+        ]
+    )
+    session.commit()
+    session.close()
+
+    monkeypatch.setattr(orders_settings, "ORDERS_API_KEY", "shared-key")
+    monkeypatch.setattr(analytics_settings, "ORDERS_API_KEY", "shared-key")
+    monkeypatch.setattr(analytics_settings, "ORDERS_API_URL", "http://orders.local/orders")
+    rate_limiter._rate_limit_store.clear()
+
+    orders_client = httpx.AsyncClient(
+        transport=httpx.ASGITransport(app=orders_main.app),
+        headers={"X-API-KEY": "shared-key"},
+    )
+    analytics_client = _build_analytics_client(orders_client)
+
+    with analytics_client:
+        response = analytics_client.get(
+            "/analytics/location-breakdown?limit=2",
+            headers={"X-API-Key": "shared-key"},
+        )
+
+    asyncio.run(orders_client.aclose())
+    orders_main.app.dependency_overrides.clear()
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+
+    assert response.status_code == 200
+    assert response.json() == {
+        "top_locations": [
+            {"location": "Austin", "count": 2},
+            {"location": "Dallas", "count": 1},
+        ]
+    }

@@ -13,3 +13,16 @@ def average_cost(orders: list[dict]) -> float:
 def top_locations(orders: list[dict], top_n: int = 3) -> list[str]:
     locations = [order.get("location") for order in orders if order.get("location")]
     return [location for location, _ in Counter(locations).most_common(top_n)]
+
+
+def status_breakdown(orders: list[dict]) -> dict[str, int]:
+    statuses = [str(order.get("status")) for order in orders if order.get("status")]
+    return dict(Counter(statuses))
+
+
+def top_locations_with_counts(orders: list[dict], top_n: int = 3) -> list[dict]:
+    locations = [order.get("location") for order in orders if order.get("location")]
+    return [
+        {"location": location, "count": count}
+        for location, count in Counter(locations).most_common(top_n)
+    ]
