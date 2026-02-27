@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Float, DateTime
-from datetime import datetime
+from datetime import datetime, timezone
 from .db import Base
 
 class Order(Base):
@@ -11,4 +11,4 @@ class Order(Base):
     cost = Column(Float)
     delivery_time = Column(Integer) #minutes
     status = Column(String, default="pending")
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), default=lambda: datetime.now(timezone.utc))

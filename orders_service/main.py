@@ -21,7 +21,7 @@ def get_order(order_id: int, db: Session = Depends(get_db)):
 
 @app.post("/orders", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
-    new_order = Order(**order.dict())
+    new_order = Order(**order.model_dump())
     db.add(new_order)
     try:
         db.commit()
