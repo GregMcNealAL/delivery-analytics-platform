@@ -10,6 +10,18 @@ import (
 	"time"
 )
 
+func mustParseURLFromEnv(envKey string) *url.URL {
+	raw := os.Getenv(envKey)
+	if raw == "" {
+		log.Fatalf("CRITICAL ERROR: %s is not set in the environment. Service cannot start.", envKey)
+	}
+	parsed, err := url.Parse(raw)
+	if err != nil || parsed.Scheme == "" || parsed.Host == "" {
+		log.Fatalf("CRITICAL ERROR: %s must be a valid absolute URL. Received: %q", envKey, raw)
+	}
+	return parsed
+}
+
 func newGatewayHandler(validApiKey string, ordersURL *url.URL, analyticsURL *url.URL) http.Handler {
 	ordersProxy := httputil.NewSingleHostReverseProxy(ordersURL)
 	analyticsProxy := httputil.NewSingleHostReverseProxy(analyticsURL)
@@ -48,14 +60,8 @@ func newGatewayHandler(validApiKey string, ordersURL *url.URL, analyticsURL *url
 }
 
 func main() {
-	ordersURL, err := url.Parse("http://localhost:8000")
-	if err != nil {
-		log.Fatal(err)
-	}
-	analyticsURL, err := url.Parse("http://localhost:8001")
-	if err != nil {
-		log.Fatal(err)
-	}
+	ordersURL := mustParseURLFromEnv("ORDERS_UPSTREAM_URL")
+	analyticsURL := mustParseURLFromEnv("ANALYTICS_UPSTREAM_URL")
 
 	validApiKey := os.Getenv("ORDERS_API_KEY")
 	if validApiKey == "" {
