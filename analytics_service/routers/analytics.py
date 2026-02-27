@@ -56,11 +56,7 @@ async def fetch_orders(client: httpx.AsyncClient) -> list[dict]:
 
 @router.get("/summary", response_model=AnalyticsSummary)
 async def get_summary(client: httpx.AsyncClient = Depends(get_http_client)):
-    try:
-        orders = await fetch_orders(client)
-    except HTTPException:
-        # return empty list if orders service fails
-        orders = []
+    orders = await fetch_orders(client)
 
     total = len(orders)
     avg_delivery = average_delivery_time(orders) if orders else 0.0

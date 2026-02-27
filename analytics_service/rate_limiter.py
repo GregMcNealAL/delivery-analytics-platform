@@ -2,6 +2,7 @@ import time
 import logging
 
 from fastapi import Depends, HTTPException, Request, status
+from analytics_service.core.config import settings
 
 logger = logging.getLogger("analytics.rate_limiter")
 
@@ -14,10 +15,10 @@ _rate_limit_store: dict[str, dict[str, float | int]] = {}
 def get_api_key(request: Request) -> str:
     """ Extracts API key from request header"""
     api_key = request.headers.get("X-API-Key")
-    if not api_key:
+    if not api_key or api_key != settings.ORDERS_API_KEY:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Missing API key",
+            detail="Invalid or missing API key",
         )
     
     return api_key
