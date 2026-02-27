@@ -70,11 +70,18 @@
     <div id="status" class="loading">Loading...</div>
 
     <div id="content" style="display:none;">
+      <div class="row"><span class="label">Summary</span></div>
       <div class="row"><span class="label">Total Orders:</span> <span id="totalOrders"></span></div>
       <div class="row"><span class="label">Average Delivery Time:</span> <span id="avgDelivery"></span></div>
       <div class="row"><span class="label">Average Cost:</span> <span id="avgCost"></span></div>
       <div class="row"><span class="label">Top Locations:</span></div>
       <ul id="topLocations"></ul>
+
+      <div class="row"><span class="label">Status Breakdown:</span></div>
+      <ul id="statusBreakdown"></ul>
+
+      <div class="row"><span class="label">Location Breakdown (Top 3):</span></div>
+      <ul id="locationBreakdown"></ul>
     </div>
 
     <div id="error" class="error" style="display:none;"></div>
@@ -82,7 +89,13 @@
 
   <script>
     // Pointing to the Go Gateway on port 8080
-    const endpoint = "http://localhost:8080/analytics/summary";
+    const BASE_URL = "http://localhost:8080/analytics";
+    const API_KEY = "password123maybe";
+    const endpoints = {
+      summary: `${BASE_URL}/summary`,
+      statuses: `${BASE_URL}/status-breakdown`,
+      locations: `${BASE_URL}/location-breakdown?limit=3`
+    };
 
     async function loadAnalytics() {
       const statusEl = document.getElementById("status");
@@ -93,33 +106,54 @@
       const avgDeliveryEl = document.getElementById("avgDelivery");
       const avgCostEl = document.getElementById("avgCost");
       const topLocationsEl = document.getElementById("topLocations");
+      const statusBreakdownEl = document.getElementById("statusBreakdown");
+      const locationBreakdownEl = document.getElementById("locationBreakdown");
 
       try {
         statusEl.textContent = "Loading...";
         errorEl.style.display = "none";
         contentEl.style.display = "none";
 
-        const res = await fetch(endpoint, {
-          headers: {
-            "X-API-Key": "password123maybe"
-          }
-        });
+        const [summaryRes, statusesRes, locationsRes] = await Promise.all([
+          fetch(endpoints.summary, { headers: { "X-API-Key": API_KEY } }),
+          fetch(endpoints.statuses, { headers: { "X-API-Key": API_KEY } }),
+          fetch(endpoints.locations, { headers: { "X-API-Key": API_KEY } })
+        ]);
 
-        if (!res.ok) {
-          throw new Error(`Gateway returned status ${res.status}`);
-        }
+        if (!summaryRes.ok) throw new Error(`Summary request failed (${summaryRes.status})`);
+        if (!statusesRes.ok) throw new Error(`Status breakdown request failed (${statusesRes.status})`);
+        if (!locationsRes.ok) throw new Error(`Location breakdown request failed (${locationsRes.status})`);
 
-        const data = await res.json();
+        const [summaryData, statusData, locationData] = await Promise.all([
+          summaryRes.json(),
+          statusesRes.json(),
+          locationsRes.json()
+        ]);
 
-        totalOrdersEl.textContent = data.total_orders ?? "N/A";
-        avgDeliveryEl.textContent = data.average_delivery_time ?? "N/A";
-        avgCostEl.textContent = data.average_cost ?? "N/A";
+        totalOrdersEl.textContent = summaryData.total_orders ?? "N/A";
+        avgDeliveryEl.textContent = summaryData.average_delivery_time ?? "N/A";
+        avgCostEl.textContent = summaryData.average_cost ?? "N/A";
 
         topLocationsEl.innerHTML = "";
-        (data.top_locations || []).forEach(loc => {
+        (summaryData.top_locations || []).forEach(loc => {
           const li = document.createElement("li");
-          li.textContent = typeof loc === "string" ? loc : `${loc.name} (${loc.count})`;
+          li.textContent = loc;
           topLocationsEl.appendChild(li);
+        });
+
+        statusBreakdownEl.innerHTML = "";
+        const statuses = statusData.statuses || {};
+        Object.entries(statuses).forEach(([status, count]) => {
+          const li = document.createElement("li");
+          li.textContent = `${status}: ${count}`;
+          statusBreakdownEl.appendChild(li);
+        });
+
+        locationBreakdownEl.innerHTML = "";
+        (locationData.top_locations || []).forEach(item => {
+          const li = document.createElement("li");
+          li.textContent = `${item.location}: ${item.count}`;
+          locationBreakdownEl.appendChild(li);
         });
 
         statusEl.textContent = "";

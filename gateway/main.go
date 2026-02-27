@@ -22,9 +22,21 @@ func mustParseURLFromEnv(envKey string) *url.URL {
 	return parsed
 }
 
+func stripUpstreamCORSHeaders(resp *http.Response) error {
+	resp.Header.Del("Access-Control-Allow-Origin")
+	resp.Header.Del("Access-Control-Allow-Methods")
+	resp.Header.Del("Access-Control-Allow-Headers")
+	resp.Header.Del("Access-Control-Allow-Credentials")
+	resp.Header.Del("Access-Control-Expose-Headers")
+	resp.Header.Del("Access-Control-Max-Age")
+	return nil
+}
+
 func newGatewayHandler(validApiKey string, ordersURL *url.URL, analyticsURL *url.URL) http.Handler {
 	ordersProxy := httputil.NewSingleHostReverseProxy(ordersURL)
 	analyticsProxy := httputil.NewSingleHostReverseProxy(analyticsURL)
+	ordersProxy.ModifyResponse = stripUpstreamCORSHeaders
+	analyticsProxy.ModifyResponse = stripUpstreamCORSHeaders
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		start := time.Now()
