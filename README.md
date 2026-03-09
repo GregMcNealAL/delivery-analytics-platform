@@ -108,6 +108,14 @@ INITIAL_BACKOFF=0.5
    `python -m http.server 5500`
 6. Open `http://localhost:5500/index.html`
 
+**Swagger auth**
+1. Open `http://127.0.0.1:8000/docs` or `http://127.0.0.1:8001/docs`.
+2. Click **Authorize** and enter your API key value (`ORDERS_API_KEY` from `.env`).
+3. Call secured endpoints directly from the docs UI.
+
+**PowerShell note**
+- In PowerShell, use `curl.exe` for curl-style flags (`-i`, `-H`), or use `Invoke-WebRequest` syntax.
+
 **Testing**
 1. Run Python tests:
    `.\venv\Scripts\python.exe -m pytest -q`
