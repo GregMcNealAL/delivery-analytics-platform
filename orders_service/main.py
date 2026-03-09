@@ -5,21 +5,24 @@ from orders_service.models import Order
 from orders_service.schemas import OrderRead, OrderCreate, OrderUpdate
 from orders_service.dependencies import verify_api_key
 
-app = FastAPI(title="Order Service")
+app = FastAPI(
+    title="Order Service",
+    dependencies=[Depends(verify_api_key)],
+)
 
 
-@app.get("/orders", response_model=list[OrderRead], dependencies=[Depends(verify_api_key)])
+@app.get("/orders", response_model=list[OrderRead])
 def get_orders(db: Session = Depends(get_db)):
     return db.query(Order).all()
 
-@app.get("/orders/{order_id}", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
+@app.get("/orders/{order_id}", response_model=OrderRead)
 def get_order(order_id: int, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order
 
-@app.post("/orders", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
+@app.post("/orders", response_model=OrderRead)
 def create_order(order: OrderCreate, db: Session = Depends(get_db)):
     new_order = Order(**order.model_dump())
     db.add(new_order)
@@ -31,7 +34,7 @@ def create_order(order: OrderCreate, db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail="Database commit failed")
     return new_order
 
-@app.patch("/orders/{order_id}", response_model=OrderRead, dependencies=[Depends(verify_api_key)])
+@app.patch("/orders/{order_id}", response_model=OrderRead)
 def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:
@@ -49,7 +52,7 @@ def update_order(order_id: int, order_update: OrderUpdate, db: Session = Depends
         raise HTTPException(status_code=500, detail="Database commit failed")
     return order
 
-@app.delete("/orders/{order_id}", dependencies=[Depends(verify_api_key)])
+@app.delete("/orders/{order_id}")
 def delete_order(order_id: int, db: Session = Depends(get_db)):
     order = db.get(Order, order_id)
     if not order:

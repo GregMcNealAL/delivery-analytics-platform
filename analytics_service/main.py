@@ -1,11 +1,15 @@
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
+from analytics_service.core.dependencies import verify_api_key
 from analytics_service.core.logging import setup_logging
 from analytics_service.core.http_client import init_http_client, close_http_client
 from analytics_service.routers.analytics import router as analytics_router
 
-app = FastAPI(title="Analytics Service")
+app = FastAPI(
+    title="Analytics Service",
+    dependencies=[Depends(verify_api_key)],
+)
 
 app.add_middleware(
     CORSMiddleware,
