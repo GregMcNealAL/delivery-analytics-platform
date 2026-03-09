@@ -17,7 +17,7 @@ async def init_http_client():
     if _async_client is None:
         _async_client = httpx.AsyncClient(
             timeout=settings.REQUEST_TIMEOUT,
-            headers={"X-API-KEY": settings.ORDERS_API_KEY}
+            headers={"X-API-Key": settings.ORDERS_API_KEY}
         )
 
 
