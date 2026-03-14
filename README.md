@@ -2,6 +2,11 @@
 
 This project is a small multi-service backend system with a Go API gateway, two FastAPI services, and a simple frontend. It demonstrates service boundaries, authenticated service-to-service calls, retry/backoff behavior, and tested routing/auth contracts.
 
+**Quick demo (Docker)**
+1. `docker compose up --build`
+2. `docker compose run --rm orders_service python -m orders_service.seed_db`
+3. `curl.exe -i -H "X-API-Key: <your key>" http://127.0.0.1:8080/analytics/summary`
+
 **Highlights**
 1. Go gateway routes `/orders` and `/analytics` to separate upstream services.
 2. API key protection at gateway, orders service, and analytics service.
@@ -106,6 +111,11 @@ INITIAL_BACKOFF=0.5
    `docker compose run --rm orders_service python -m orders_service.seed_db`
 4. Hit the gateway:
    `curl.exe -i -H "X-API-Key: <your key>" http://127.0.0.1:8080/analytics/summary`
+
+Notes:
+- Docker networking uses service names (for example `orders_service`) instead of `localhost` between containers.
+- The gateway reads environment variables at process start; `docker-compose.yml` injects them via `.env`.
+- Stop: `docker compose down` (add `-v` to wipe the Postgres volume)
 
 **Run locally**
 1. Set Python service values in the project root `.env` (`ORDERS_API_KEY`, `DATABASE_URL`, retry config). Export/set gateway env vars in your shell (`ORDERS_API_KEY`, `ORDERS_UPSTREAM_URL`, `ANALYTICS_UPSTREAM_URL`) before running the gateway.
