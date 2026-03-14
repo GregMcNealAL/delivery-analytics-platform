@@ -87,7 +87,9 @@ The location breakdown endpoint returns data like this:
 Python services read configuration from the project root `.env`. The Go gateway reads process environment variables (`os.Getenv`), so those values must be present in the gateway process environment.
 ```
 ORDERS_API_KEY=dev-key
-DATABASE_URL=postgresql+psycopg://user:password@localhost:5432/ordersdb
+POSTGRES_PASSWORD=your-password
+POSTGRES_DB=ordersdb
+DATABASE_URL=postgresql+psycopg2://postgres:${POSTGRES_PASSWORD}@localhost:5432/${POSTGRES_DB}
 ORDERS_UPSTREAM_URL=http://localhost:8000
 ANALYTICS_UPSTREAM_URL=http://localhost:8001
 ORDERS_API_URL=http://127.0.0.1:8000/orders
@@ -95,6 +97,15 @@ REQUEST_TIMEOUT=5.0
 MAX_RETRIES=3
 INITIAL_BACKOFF=0.5
 ```
+
+**Run with Docker**
+1. Ensure `.env` includes `ORDERS_API_KEY` and `POSTGRES_PASSWORD` (and optionally `POSTGRES_DB`).
+2. Start the stack:
+   `docker compose up --build`
+3. Seed data (in a second terminal):
+   `docker compose run --rm orders_service python -m orders_service.seed_db`
+4. Hit the gateway:
+   `curl.exe -i -H "X-API-Key: <your key>" http://127.0.0.1:8080/analytics/summary`
 
 **Run locally**
 1. Set Python service values in the project root `.env` (`ORDERS_API_KEY`, `DATABASE_URL`, retry config). Export/set gateway env vars in your shell (`ORDERS_API_KEY`, `ORDERS_UPSTREAM_URL`, `ANALYTICS_UPSTREAM_URL`) before running the gateway.
